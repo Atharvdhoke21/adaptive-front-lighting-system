@@ -1,0 +1,230 @@
+
+#include<wire.h>
+
+// LED's
+
+const int ledPin = 13;
+
+// Sensors 
+
+const int Sensor1Pin = A2;
+
+// const int Sensor2Pin = 3; 
+
+int Sensor1Data;
+
+//int Sensor2Data;
+
+char Sensor1CharMsg[4];
+
+void setup() {
+
+// PinModes
+
+
+// LED 
+
+pinMode(ledPin,OUTPUT);
+
+// Sensor(s)
+
+pinMode(Sensor1Pin,INPUT);
+
+// for debugging
+
+Serial.begin(9600); 
+
+// VirtualWire setup
+
+vw_setup(2000);     // Bits per sec
+
+}
+
+
+void loop() {
+
+// Read and store Sensor 1 data
+
+Sensor1Data = analogRead(Sensor1Pin);
+
+// Convert integer data to Char array directly 
+
+itoa(Sensor1Data,Sensor1CharMsg,10);
+
+// DEBUG
+
+
+Serial.print("Sensor1 Integer: ");
+
+Serial.print(Sensor1Data);
+
+Serial.print(" Sensor1 CharMsg: ");
+
+Serial.print(Sensor1CharMsg);
+
+Serial.println(" ");
+
+delay(10);
+
+
+// END DEBUG
+
+digitalWrite(13, true); // Turn on a light to show transmitting
+
+vw_send((uint8_t *)Sensor1CharMsg, strlen(Sensor1CharMsg));
+
+vw_wait_tx(); // Wait until the whole message is gone
+
+delay(12);
+
+
+}   // END void loop...
+
+#include 
+
+int servo = 5;
+
+int servo1 = 9;
+
+int angle;
+
+int pwm;
+
+// Sensors 
+
+int Sensor1Data;
+
+// RF Transmission container
+
+char Sensor1CharMsg[4]; 
+
+void setup() {
+
+
+Serial.begin(9600);
+
+pinMode(servo, OUTPUT);
+
+pinMode(servo1, OUTPUT);
+
+pinMode(3, OUTPUT);
+
+pinMode(8, OUTPUT);
+
+digitalWrite(3,HIGH);
+
+digitalWrite(8,HIGH);
+
+// sets the digital pin as output
+
+// VirtualWire 
+
+// Initialise the IO and ISR
+
+// Required for DR3100
+
+vw_set_ptt_inverted(true);
+
+
+// Bits per sec
+
+vw_setup(2000);     
+
+// Start the receiver PLL running
+
+vw_rx_start();       
+
+} // END void setup
+
+void loop(){
+
+uint8_t buf[VW_MAX_MESSAGE_LEN];
+
+uint8_t buflen = VW_MAX_MESSAGE_LEN;
+
+// Non-blocking
+
+if (vw_get_message(buf, &buflen)) 
+
+{
+
+
+int i;
+
+// Message with a good checksum received, dump it. 
+
+for (i = 0; i < buflen; i++)
+
+{            
+
+// Fill Sensor1CharMsg Char array with corresponding 
+
+// chars from buffer.   
+
+Sensor1CharMsg[i] = char(buf[i]);
+
+}
+
+
+// Null terminate the char array
+
+// This needs to be done otherwise problems will occur
+
+// when the incoming messages has less digits than the
+
+// one before. 
+
+Sensor1CharMsg[buflen] = '';
+
+ // Convert Sensor1CharMsg Char array to integer
+
+Sensor1Data = atoi(Sensor1CharMsg);
+
+// DEBUG 
+
+Serial.print("Sensor 1: ");
+
+Serial.println(Sensor1Data); 
+
+servoPulse(servo, Sensor1Data); 
+
+servoPulse1(servo1, Sensor1Data);       
+
+ }
+
+
+}
+
+void servoPulse (int servo, int angle)
+
+{
+
+ pwm = (angle*11) + 1000;      // Convert angle to microseconds
+
+ digitalWrite(servo, HIGH);
+
+ delayMicroseconds(pwm);
+
+ digitalWrite(servo, LOW);
+
+ delay(15);                   // Refresh cycle of servo
+
+}
+
+void servoPulse1 (int servo1, int angle)
+
+{
+
+ pwm = (angle*11) + 1000;      // Convert angle to microseconds
+
+ digitalWrite(servo1, HIGH);
+
+ delayMicroseconds(pwm);
+
+ digitalWrite(servo1, LOW);
+
+ delay(15);                   // Refresh cycle of servo
+
+}
+
+###
